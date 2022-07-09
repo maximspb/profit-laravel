@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  nginx:
+    build:
+      context: ./docker/dev/nginx
+    volumes:
+      - ./:/app
+    container_name: nginx
+    restart: always
+    ports:
+      - "8082:80"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  php-fpm:
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    build:
+      context: ./docker/dev/php
+    volumes:
+      - ./:/app
+    container_name: laravel
+    environment:
+      PHP_IDE_CONFIG: "serverName=profitLaravel"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+  postgres:
+    image: postgres:13
+    ports:
+      - "12000:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_PASSWORD=profit_laravel
+      - POSTGRES_USER=profit_laravel
+      - POSTGRES_DB=profit_laravel
+    restart: unless-stopped
+
+volumes:
+  pgdata:
